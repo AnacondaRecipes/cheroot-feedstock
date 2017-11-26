@@ -34,8 +34,9 @@ requirements:
 test:
   imports:
     - cheroot
+    - cheroot.ssl
     - cheroot.test
-
+    - cheroot.workers
 
 about:
   home: http://www.cherrypy.org
