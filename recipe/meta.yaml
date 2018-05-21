@@ -29,7 +29,7 @@ requirements:
     - python
     - six >=1.11.0
     - more-itertools >=2.6
-    - backports.functools_lru_cache
+    - backports.functools_lru_cache  # [py2k]
 
 test:
   imports:
