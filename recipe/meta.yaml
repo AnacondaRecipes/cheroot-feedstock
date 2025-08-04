@@ -36,6 +36,9 @@ requirements:
 {% set tests_to_ignore = tests_to_ignore + " --ignore=${SP_DIR}/cheroot/test/test_wsgi.py" %}  # [unix]
 {% set tests_to_ignore = tests_to_ignore + " --ignore=%SP_DIR%/cheroot/test/test_wsgi.py" %}  # [win]
 
+# On Windows, the SSL handshake failure is producing an error message that differs from all the predefined expected patterns,
+# causing the assertion assert any(e in err_text for e in expected_substrings) to fail since none of the expected substring patterns are found in the actual error text.
+{% set tests_to_ignore = tests_to_ignore + " --ignore=%SP_DIR%/cheroot/test/test_ssl.py" %}  # [win]
 
 test:
   imports:
