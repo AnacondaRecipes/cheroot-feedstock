@@ -1,49 +1,77 @@
-{% set name = "Cheroot" %}
-{% set version = "8.5.2" %}
+{% set name = "cheroot" %}
+{% set version = "10.0.1" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0]|lower }}/{{ name|lower }}/{{ name|lower }}-{{ version }}.tar.gz
-  sha256: f137d03fd5155b1364bea557a7c98168665c239f6c8cedd8f80e81cdfac01567
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: e0b82f797658d26b8613ec8eb563c3b08e6bd6a7921e9d5089bd1175ad1b1740
 
 build:
-  number: 1
-  script: {{ PYTHON }} -m pip install . -vv
+  number: 0
   entry_points:
     - cheroot = cheroot.cli:main
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  skip: True  # [py<36]
 
 requirements:
   host:
     - python
     - pip
-    - setuptools_scm >=1.15.0
-    - setuptools-scm-git-archive >=1.0
+    - wheel
+    - setuptools >=34.4
+    - setuptools-scm >=7.0.0
   run:
     - python
-    - six >=1.11.0
-    - selectors2  # [py<34]
+    - importlib-metadata  # [py<38]
     - more-itertools >=2.6
-    - backports.functools_lru_cache  # [py<33]
     - jaraco.functools
+
+# E   ModuleNotFoundError: No module named 'requests_unixsocket'
+{% set tests_to_ignore = " --ignore=${SP_DIR}/cheroot/test/test_server.py" %}  # [unix]
+{% set tests_to_ignore = " --ignore=%SP_DIR%/cheroot/test/test_server.py" %}  # [win]
+# E   ModuleNotFoundError: No module named 'requests_toolbelt'
+{% set tests_to_ignore = tests_to_ignore + " --ignore=${SP_DIR}/cheroot/test/test_wsgi.py" %}  # [unix]
+{% set tests_to_ignore = tests_to_ignore + " --ignore=%SP_DIR%/cheroot/test/test_wsgi.py" %}  # [win]
+
+# On Windows, the SSL handshake failure is producing an error message that differs from all the predefined expected patterns,
+# causing the assertion assert any(e in err_text for e in expected_substrings) to fail since none of the expected substring patterns are found in the actual error text.
+{% set tests_to_ignore = tests_to_ignore + " --ignore=%SP_DIR%/cheroot/test/test_ssl.py" %}  # [win]
 
 test:
   imports:
     - cheroot
+    - cheroot._compat
+    - cheroot.cli
+    - cheroot.server
     - cheroot.test
+    - cheroot.wsgi
   commands:
-    - cheroot -h
+    - pip check
+    - cheroot --help
+    - pytest -v ${SP_DIR}/cheroot/test {{ tests_to_ignore }}  # [unix]
+    - pytest -v %SP_DIR%/cheroot/test {{ tests_to_ignore }}  # [win]
+  requires:
+    - pip
+    - pytest >=4.6.6,<7
+    - pytest-mock >=1.11.0
+    - requests
+    - jaraco.text >=3.1
+    - pyopenssl >=22
+    - portend
+    - trustme >=0.4.0
 
 about:
-  home: http://www.cherrypy.org
-  license: BSD 3-Clause
+  home: https://cheroot.cherrypy.dev
+  summary: Highly-optimized, pure-python HTTP server
+  license: BSD-3-Clause
   license_family: BSD
   license_file: LICENSE.md
-  summary: Highly-optimized, pure-python HTTP server
+  description: Cheroot is the high-performance, pure-Python HTTP server used by CherryPy.
   dev_url: https://github.com/cherrypy/cheroot
-  doc_url: https://cheroot.readthedocs.io/en/latest/
+  doc_url: https://cheroot.readthedocs.io
 
 extra:
   recipe-maintainers:
