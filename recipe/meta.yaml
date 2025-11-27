@@ -1,34 +1,33 @@
-{% set name = "cheroot" %}
-{% set version = "10.0.1" %}
+{% set name = "Cheroot" %}
+{% set version = "11.1.2" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: e0b82f797658d26b8613ec8eb563c3b08e6bd6a7921e9d5089bd1175ad1b1740
+  url: https://pypi.org/packages/source/{{ name[0]|lower }}/{{ name|lower }}/{{ name|lower }}-{{ version }}.tar.gz
+  sha256: bfb70c49663f63b0440f2b54dbc6b0d1650e56dfe4e2641f59b2c6f727b44aca
 
 build:
   number: 0
+  skip: true  # [py<38]
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
   entry_points:
     - cheroot = cheroot.cli:main
-  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
-  skip: True  # [py<36]
 
 requirements:
   host:
     - python
     - pip
-    - wheel
-    - setuptools >=34.4
+    - setuptools >=61.2
     - setuptools-scm >=7.0.0
   run:
     - python
-    - importlib-metadata  # [py<38]
     - more-itertools >=2.6
     - jaraco.functools
 
+{% set tests_to_ignore = "" %}
 # E   ModuleNotFoundError: No module named 'requests_unixsocket'
 {% set tests_to_ignore = " --ignore=${SP_DIR}/cheroot/test/test_server.py" %}  # [unix]
 {% set tests_to_ignore = " --ignore=%SP_DIR%/cheroot/test/test_server.py" %}  # [win]
@@ -43,7 +42,6 @@ requirements:
 test:
   imports:
     - cheroot
-    - cheroot._compat
     - cheroot.cli
     - cheroot.server
     - cheroot.test
@@ -55,8 +53,11 @@ test:
     - pytest -v %SP_DIR%/cheroot/test {{ tests_to_ignore }}  # [win]
   requires:
     - pip
-    - pytest >=4.6.6,<7
+    - pytest >=7
     - pytest-mock >=1.11.0
+    - pytest-rerunfailures
+    - pytest-sugar >=0.9.3
+    - pytest-xdist >=1.28.0
     - requests
     - jaraco.text >=3.1
     - pyopenssl >=22
@@ -65,7 +66,7 @@ test:
 
 about:
   home: https://cheroot.cherrypy.dev
-  summary: Highly-optimized, pure-python HTTP server
+  summary: Cheroot is the high-performance, pure-Python HTTP server used by CherryPy.
   license: BSD-3-Clause
   license_family: BSD
   license_file: LICENSE.md
